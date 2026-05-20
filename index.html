@@ -1,0 +1,2067 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Última Señal - Chat Falso</title>
+  <style>
+    :root{
+      --bg:#0b141a;
+      --phone:#111b21;
+      --top:#202c33;
+      --me:#005c4b;
+      --them:#202c33;
+      --accent:#00a884;
+      --accent2:#53bdeb;
+      --text:#e9edef;
+      --muted:#8696a0;
+      --line:rgba(255,255,255,.08);
+      --red:#ff5f6d;
+      --yellow:#ffd166;
+      --green:#00d084;
+    }
+
+    *{
+      box-sizing:border-box;
+      -webkit-tap-highlight-color:transparent;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at top left,rgba(0,168,132,.16),transparent 30%),
+        radial-gradient(circle at bottom right,rgba(83,189,235,.10),transparent 35%),
+        var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      overflow:hidden;
+    }
+
+    .app{
+      width:min(100%,460px);
+      height:100vh;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      background:var(--phone);
+      position:relative;
+      box-shadow:0 0 50px rgba(0,0,0,.45);
+    }
+
+    .topbar{
+      background:var(--top);
+      padding:10px 12px 8px;
+      border-bottom:1px solid var(--line);
+      flex:0 0 auto;
+      z-index:10;
+    }
+
+    .toprow{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .back{
+      font-size:1.2rem;
+      color:var(--muted);
+    }
+
+    .avatar{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(145deg,#00a884,#2a3942);
+      font-weight:950;
+      color:#06221c;
+      box-shadow:0 0 18px rgba(0,168,132,.18);
+      flex:0 0 auto;
+    }
+
+    .contact{
+      min-width:0;
+      flex:1;
+    }
+
+    .contact h1{
+      margin:0;
+      font-size:1rem;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .status{
+      margin-top:2px;
+      color:var(--muted);
+      font-size:.75rem;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .case-pill{
+      border:1px solid rgba(0,168,132,.28);
+      color:var(--accent);
+      border-radius:999px;
+      padding:6px 9px;
+      font-size:.72rem;
+      font-weight:850;
+      white-space:nowrap;
+    }
+
+    .rescue-wrap{
+      margin-top:8px;
+    }
+
+    .rescue-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+      font-size:.76rem;
+      color:#c9d7dc;
+    }
+
+    .rescue-bar{
+      width:100%;
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .rescue-fill{
+      height:100%;
+      width:50%;
+      background:linear-gradient(90deg,var(--red),var(--yellow),var(--green));
+      transition:width .35s ease;
+    }
+
+    .chat{
+      position:relative;
+      flex:1;
+      overflow-y:auto;
+      padding:14px 11px 12px;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px),
+        #0b141a;
+      background-size:30px 30px;
+      scroll-behavior:smooth;
+    }
+
+    .date-chip{
+      width:max-content;
+      max-width:86%;
+      margin:0 auto 12px;
+      color:#c8d6dc;
+      background:rgba(32,44,51,.85);
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:10px;
+      padding:6px 10px;
+      font-size:.72rem;
+    }
+
+    .bubble{
+      max-width:82%;
+      width:max-content;
+      min-width:54px;
+      margin:6px 0;
+      padding:8px 9px 6px;
+      border-radius:14px;
+      line-height:1.35;
+      font-size:.93rem;
+      word-wrap:break-word;
+      box-shadow:0 2px 10px rgba(0,0,0,.1);
+      animation:pop .18s ease;
+      position:relative;
+    }
+
+    @keyframes pop{
+      from{transform:translateY(4px);opacity:0}
+      to{transform:translateY(0);opacity:1}
+    }
+
+    .bubble.them{
+      background:var(--them);
+      border-top-left-radius:4px;
+      margin-right:auto;
+    }
+
+    .bubble.me{
+      background:var(--me);
+      border-top-right-radius:4px;
+      margin-left:auto;
+    }
+
+    .time{
+      display:inline-block;
+      color:rgba(233,237,239,.62);
+      font-size:.64rem;
+      margin-left:8px;
+      vertical-align:-2px;
+      white-space:nowrap;
+    }
+
+    .ticks{
+      font-size:.7rem;
+      color:#53bdeb;
+      margin-left:3px;
+    }
+
+    .typing{
+      display:flex;
+      align-items:center;
+      gap:4px;
+      padding:10px 12px;
+      width:66px;
+    }
+
+    .dot{
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:var(--muted);
+      animation:bounce 1s infinite ease-in-out;
+    }
+
+    .dot:nth-child(2){animation-delay:.12s}
+    .dot:nth-child(3){animation-delay:.24s}
+
+    @keyframes bounce{
+      0%,80%,100%{transform:translateY(0);opacity:.45}
+      40%{transform:translateY(-4px);opacity:1}
+    }
+
+    .media{
+      width:246px;
+      max-width:100%;
+      border-radius:13px;
+      overflow:hidden;
+      background:#111;
+      border:1px solid rgba(255,255,255,.07);
+      margin-bottom:5px;
+    }
+
+    .photo-real{
+      width:100%;
+      max-height:260px;
+      object-fit:cover;
+      display:block;
+      filter:contrast(1.04) brightness(.9);
+    }
+
+    .photo-caption{
+      padding:7px 9px;
+      color:#d8e6ea;
+      background:rgba(0,0,0,.28);
+      font-size:.78rem;
+      line-height:1.25;
+    }
+
+    .photo-fallback{
+      min-height:155px;
+      display:grid;
+      place-items:center;
+      text-align:center;
+      padding:14px;
+      background:linear-gradient(135deg,#152d33,#070d13 65%);
+      font-weight:850;
+      color:#dceff1;
+    }
+
+    .file-card{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:230px;
+      background:rgba(255,255,255,.055);
+      border-radius:12px;
+      padding:10px;
+      margin-bottom:5px;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .file-icon{
+      width:42px;
+      height:42px;
+      border-radius:12px;
+      display:grid;
+      place-items:center;
+      background:rgba(0,168,132,.17);
+      font-size:1.4rem;
+    }
+
+    .file-text strong{
+      display:block;
+      font-size:.86rem;
+    }
+
+    .file-text small{
+      display:block;
+      color:var(--muted);
+      font-size:.7rem;
+      margin-top:2px;
+    }
+
+    .evidence{
+      display:flex;
+      gap:6px;
+      overflow-x:auto;
+      padding:7px 10px;
+      background:#111b21;
+      border-top:1px solid rgba(255,255,255,.05);
+      flex:0 0 auto;
+    }
+
+    .ev{
+      min-width:max-content;
+      border:1px solid rgba(255,255,255,.1);
+      color:var(--muted);
+      border-radius:999px;
+      padding:6px 9px;
+      font-size:.72rem;
+      background:rgba(255,255,255,.045);
+    }
+
+    .ev.on{
+      color:#8ff0bf;
+      border-color:rgba(143,240,191,.28);
+      background:rgba(143,240,191,.08);
+    }
+
+    .choices{
+      flex:0 0 auto;
+      background:linear-gradient(180deg,rgba(17,27,33,.4),#111b21 22%);
+      padding:10px 10px 12px;
+      border-top:1px solid var(--line);
+      display:grid;
+      gap:8px;
+    }
+
+    .choice{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border-radius:18px;
+      padding:12px 13px;
+      font-weight:780;
+      font-size:.9rem;
+      text-align:left;
+      cursor:pointer;
+      line-height:1.25;
+      transition:transform .12s ease,background .15s ease;
+    }
+
+    .choice:active{
+      transform:scale(.985);
+      background:rgba(255,255,255,.12);
+    }
+
+    .choice-timer{
+      flex:0 0 auto;
+      background:#111b21;
+      padding:8px 10px 0;
+      border-top:1px solid rgba(255,255,255,.05);
+      display:none;
+    }
+
+    .choice-timer.show{
+      display:block;
+    }
+
+    .timer-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      color:#d8e6ea;
+      font-size:.76rem;
+      margin-bottom:6px;
+    }
+
+    .timer-count{
+      color:#ffd166;
+      font-weight:950;
+    }
+
+    .timer-bar{
+      height:9px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .timer-fill{
+      height:100%;
+      width:100%;
+      background:linear-gradient(90deg,#00d084,#ffd166,#ff5f6d);
+      transition:width .2s linear;
+    }
+
+    .inputbar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex:0 0 auto;
+      padding:8px 10px 10px;
+      background:#111b21;
+      border-top:1px solid var(--line);
+    }
+
+    .fake-input{
+      flex:1;
+      min-height:43px;
+      border-radius:999px;
+      background:#202c33;
+      display:flex;
+      align-items:center;
+      color:var(--muted);
+      padding:0 14px;
+      font-size:.9rem;
+    }
+
+    .send{
+      width:43px;
+      height:43px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      background:var(--accent);
+      color:#05231d;
+      font-weight:950;
+    }
+
+    .overlay{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.66);
+      display:grid;
+      place-items:center;
+      padding:18px;
+      z-index:60;
+    }
+
+    .start-card,.end-card{
+      width:100%;
+      max-width:345px;
+      background:#111b21;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:26px;
+      padding:20px 16px;
+      text-align:center;
+      box-shadow:0 24px 80px rgba(0,0,0,.55);
+    }
+
+    .start-icon{
+      width:84px;
+      height:84px;
+      margin:0 auto 14px;
+      border-radius:28px;
+      display:grid;
+      place-items:center;
+      background:linear-gradient(145deg,rgba(0,168,132,.28),rgba(83,189,235,.13));
+      border:1px solid rgba(0,168,132,.28);
+      font-size:2.2rem;
+    }
+
+    .start-card h2,.end-card h2{
+      margin:0 0 9px;
+      font-size:1.48rem;
+    }
+
+    .start-card p,.end-card p{
+      margin:0 0 15px;
+      color:var(--muted);
+      line-height:1.42;
+    }
+
+    .btn{
+      width:100%;
+      border:0;
+      border-radius:18px;
+      padding:14px 15px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#041c17;
+      font-weight:950;
+      font-size:1rem;
+      cursor:pointer;
+    }
+
+    .btn.secondary{
+      margin-top:9px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--text);
+    }
+
+
+    .unlock-badge{
+      margin:10px auto 14px;
+      width:max-content;
+      max-width:100%;
+      border:1px solid rgba(143,240,191,.28);
+      background:rgba(143,240,191,.08);
+      color:#8ff0bf;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:.82rem;
+      font-weight:900;
+    }
+
+    .level-preview{
+      text-align:left;
+      background:rgba(255,255,255,.055);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:18px;
+      padding:12px;
+      margin:12px 0;
+      color:#d8e6ea;
+      font-size:.88rem;
+      line-height:1.38;
+    }
+
+    .level-preview strong{
+      color:#8ff0bf;
+    }
+
+    .route-list{
+      display:grid;
+      gap:7px;
+      margin-top:10px;
+    }
+
+    .route-chip{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.055);
+      border-radius:14px;
+      padding:9px 10px;
+      color:#e9edef;
+      font-size:.83rem;
+      line-height:1.25;
+    }
+
+
+
+    .puzzle-level{
+      position:absolute;
+      inset:0;
+      z-index:80;
+      background:
+        radial-gradient(circle at top,#374151,#111827 70%);
+      color:white;
+      overflow-y:auto;
+      padding:18px;
+    }
+
+    .puzzle-game{
+      width:100%;
+      max-width:430px;
+      margin:0 auto;
+      background:rgba(17,24,39,.94);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      padding:22px;
+      box-shadow:0 20px 50px rgba(0,0,0,.45);
+    }
+
+    .puzzle-game h1{
+      text-align:center;
+      font-size:1.65rem;
+      margin:0 0 8px;
+    }
+
+    .puzzle-intro{
+      text-align:center;
+      color:#d1d5db;
+      font-size:.95rem;
+      line-height:1.4;
+      margin-bottom:20px;
+    }
+
+    .puzzle-box{
+      background:linear-gradient(145deg,#92400e,#451a03);
+      border:4px solid #fbbf24;
+      border-radius:22px;
+      padding:22px;
+      text-align:center;
+      margin-bottom:20px;
+      position:relative;
+      box-shadow:inset 0 0 25px rgba(0,0,0,.45);
+    }
+
+    .puzzle-box::before{
+      content:"🧰";
+      font-size:4rem;
+      display:block;
+      margin-bottom:8px;
+    }
+
+    .puzzle-status{
+      font-weight:bold;
+      color:#fde68a;
+      margin-top:8px;
+    }
+
+    .puzzle-locks{
+      display:grid;
+      gap:14px;
+    }
+
+    .puzzle-lock-card{
+      background:rgba(31,41,55,.95);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      padding:16px;
+    }
+
+    .puzzle-lock-title{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      font-weight:bold;
+      margin-bottom:10px;
+      gap:8px;
+    }
+
+    .puzzle-solved{
+      color:#86efac;
+      font-size:.86rem;
+      white-space:nowrap;
+    }
+
+    .puzzle-input{
+      width:100%;
+      padding:13px;
+      border-radius:12px;
+      border:none;
+      outline:none;
+      margin-bottom:10px;
+      font-size:1rem;
+      text-align:center;
+      background:white;
+      color:#111827;
+    }
+
+    .puzzle-btn{
+      width:100%;
+      border:none;
+      padding:13px;
+      border-radius:12px;
+      background:#fbbf24;
+      color:#111827;
+      font-weight:bold;
+      font-size:1rem;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    .puzzle-btn:active{
+      transform:scale(.97);
+    }
+
+    .puzzle-btn.secondary{
+      margin-top:10px;
+      background:#60a5fa;
+    }
+
+    .puzzle-color-buttons{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .puzzle-color-btn{
+      height:45px;
+      border-radius:12px;
+      border:2px solid rgba(255,255,255,.45);
+      padding:0;
+    }
+
+    .puzzle-red{background:#ef4444;}
+    .puzzle-blue{background:#3b82f6;}
+    .puzzle-green{background:#22c55e;}
+    .puzzle-yellow{background:#facc15;}
+
+    .puzzle-sequence{
+      background:#111827;
+      padding:10px;
+      border-radius:10px;
+      text-align:center;
+      color:#e5e7eb;
+      margin-bottom:10px;
+      min-height:40px;
+    }
+
+    .puzzle-clues-title{
+      margin:18px 0 8px;
+      color:#fde68a;
+      font-size:1.05rem;
+      font-weight:950;
+      letter-spacing:.2px;
+    }
+
+    .puzzle-clues{
+      margin-top:18px;
+      display:grid;
+      gap:10px;
+    }
+
+    .puzzle-clue{
+      background:rgba(255,255,255,.08);
+      border:1px dashed rgba(255,255,255,.2);
+      border-radius:14px;
+      padding:12px;
+      color:#d1d5db;
+      font-size:.9rem;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .puzzle-hidden-text{
+      display:none;
+      margin-top:8px;
+      color:#fde68a;
+      font-weight:bold;
+    }
+
+    .puzzle-message{
+      margin-top:16px;
+      text-align:center;
+      min-height:24px;
+      font-weight:bold;
+    }
+
+    .puzzle-success{color:#86efac;}
+    .puzzle-error{color:#fca5a5;}
+
+    .secret-card{
+      width:100%;
+      max-width:430px;
+      margin:0 auto;
+      background:rgba(17,24,39,.96);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:24px;
+      padding:24px 20px;
+      box-shadow:0 20px 50px rgba(0,0,0,.45);
+      text-align:center;
+      animation:fadeIn .4s ease;
+    }
+
+    .secret-card h2{
+      margin:0 0 14px;
+      font-size:1.8rem;
+      color:#86efac;
+    }
+
+    .secret-message{
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;
+      padding:18px;
+      color:#fff7ed;
+      font-size:1.05rem;
+      line-height:1.5;
+      margin:16px 0;
+    }
+
+    @media(max-width:380px){
+      .puzzle-game h1{font-size:1.45rem;}
+      .puzzle-box::before{font-size:3.4rem;}
+    }
+
+
+    .hidden{
+      display:none !important;
+    }
+
+    .toast{
+      position:absolute;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.5);
+      border:1px solid rgba(255,255,255,.10);
+      color:#d9f3eb;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:.76rem;
+      font-weight:800;
+      opacity:0;
+      pointer-events:none;
+      transition:.2s ease;
+      z-index:40;
+      white-space:nowrap;
+    }
+
+    .toast.show{
+      opacity:1;
+      bottom:24px;
+    }
+
+    @media(max-height:700px){
+      .bubble{font-size:.88rem}
+      .choice{padding:10px 12px;font-size:.86rem}
+      .topbar{padding-top:8px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="toprow">
+        <div class="back">‹</div>
+        <div class="avatar">A</div>
+        <div class="contact">
+          <h1>Angelica</h1>
+          <div class="status" id="contactStatus">última vez hoy a las 11:58 PM</div>
+        </div>
+        <div class="case-pill" id="casePill">Rescate 50%</div>
+      </div>
+
+      <div class="rescue-wrap">
+        <div class="rescue-row">
+          <span>Qué tan cerca estás de salvarla</span>
+          <strong id="rescueText">50%</strong>
+        </div>
+        <div class="rescue-bar">
+          <div class="rescue-fill" id="rescueFill"></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="chat" id="chat"></section>
+
+    <section class="evidence">
+      <div class="ev" id="evLocation">📍 ubicación</div>
+      <div class="ev" id="evPhoto">🖼️ foto</div>
+      <div class="ev" id="evCode">🔢 código</div>
+      <div class="ev" id="evName">👤 nombre</div>
+      <div class="ev" id="evRoute">🚶 ruta</div>
+    </section>
+
+    <section class="choice-timer" id="choiceTimer">
+      <div class="timer-row">
+        <span>Tiempo para responder</span>
+        <strong class="timer-count" id="timerCount">12s</strong>
+      </div>
+      <div class="timer-bar">
+        <div class="timer-fill" id="timerFill"></div>
+      </div>
+    </section>
+
+    <section class="choices" id="choices"></section>
+
+    <footer class="inputbar">
+      <div class="fake-input" id="fakeInput">Elige una respuesta...</div>
+      <div class="send">➤</div>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="overlay" id="overlay">
+      <div class="start-card">
+        <div class="start-icon">💬</div>
+        <h2>Última Señal</h2>
+        <p>
+          Angelica te escribe con poca batería. Está en Bogotá, cerca del centro histórico,
+          y cree que alguien la sigue. Tus decisiones pueden salvarla... o condenarla.
+        </p>
+        <button class="btn" onclick="startGame()">ABRIR CHAT</button>
+        <button class="btn secondary" onclick="showHowTo()">Cómo se juega</button>
+      </div>
+    </div>
+
+    <section class="puzzle-level hidden" id="levelTwoScreen"></section>
+
+  </main>
+
+  <script>
+    const chat = document.getElementById("chat");
+    const choices = document.getElementById("choices");
+    const overlay = document.getElementById("overlay");
+    const fakeInput = document.getElementById("fakeInput");
+    const contactStatus = document.getElementById("contactStatus");
+    const rescueFill = document.getElementById("rescueFill");
+    const rescueText = document.getElementById("rescueText");
+    const casePill = document.getElementById("casePill");
+    const toast = document.getElementById("toast");
+    const choiceTimer = document.getElementById("choiceTimer");
+    const timerCount = document.getElementById("timerCount");
+    const timerFill = document.getElementById("timerFill");
+
+    const SIGN_IMAGE_URL = "https://i.imgur.com/MKEdih8.png";
+
+    let timers = [];
+    let currentChoices = [];
+    let choiceCountdown = null;
+    let timeLeft = 15;
+    let lastUserText = "";
+
+    const state = {
+      rescue: 50,
+      evidence: new Set(),
+      ended: false,
+      path: []
+    };
+
+    function later(fn, ms){
+      const t = setTimeout(fn, ms);
+      timers.push(t);
+      return t;
+    }
+
+    function clearAllTimers(){
+      timers.forEach(t => clearTimeout(t));
+      timers = [];
+      stopChoiceTimer();
+    }
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(() => toast.classList.remove("show"), 1200);
+    }
+
+    function startChoiceTimer(){
+      stopChoiceTimer();
+
+      timeLeft = 15;
+      choiceTimer.classList.add("show");
+      timerCount.textContent = "15s";
+      timerFill.style.width = "100%";
+
+      choiceCountdown = setInterval(() => {
+        timeLeft -= 1;
+        timerCount.textContent = timeLeft + "s";
+        timerFill.style.width = Math.max(0, (timeLeft / 15) * 100) + "%";
+
+        if(timeLeft <= 0){
+          stopChoiceTimer();
+          choices.innerHTML = "";
+          fakeInput.textContent = "No respondiste a tiempo...";
+          state.rescue = 0;
+          updateRescue();
+          addBubble({from:"them", text:"Paola... ya es tarde."});
+          endGame("dead");
+        }
+      }, 1000);
+    }
+
+    function stopChoiceTimer(){
+      if(choiceCountdown){
+        clearInterval(choiceCountdown);
+        choiceCountdown = null;
+      }
+      if(choiceTimer){
+        choiceTimer.classList.remove("show");
+      }
+    }
+
+    function updateRescue(){
+      const value = Math.max(0, Math.min(100, state.rescue));
+      rescueFill.style.width = value + "%";
+      rescueText.textContent = value + "%";
+      casePill.textContent = "Rescate " + value + "%";
+    }
+
+    function updateEvidence(){
+      const map = {
+        location: "evLocation",
+        photo: "evPhoto",
+        code: "evCode",
+        name: "evName",
+        route: "evRoute"
+      };
+
+      Object.entries(map).forEach(([key, id]) => {
+        document.getElementById(id).classList.toggle("on", state.evidence.has(key));
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>'"]/g, c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        "'":"&#39;",
+        '"':"&quot;"
+      }[c]));
+    }
+
+    function nowTime(){
+      const d = new Date();
+      let h = d.getHours();
+      let m = String(d.getMinutes()).padStart(2, "0");
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      return `${h}:${m} ${ampm}`;
+    }
+
+    function addBubble({from="them", text="", media=null, label="", file="", meta="", typing=false}){
+      if(typing){
+        const b = document.createElement("div");
+        b.className = "bubble them typing";
+        b.innerHTML = `<span class="dot"></span><span class="dot"></span><span class="dot"></span>`;
+        chat.appendChild(b);
+        chat.scrollTop = chat.scrollHeight;
+        return b;
+      }
+
+      const b = document.createElement("div");
+      b.className = `bubble ${from}`;
+
+      let content = "";
+
+      if(media === "photo"){
+        content += `
+          <div class="media">
+            <img
+              class="photo-real"
+              src="${SIGN_IMAGE_URL}"
+              alt="Foto enviada por Angelica"
+              onerror="this.outerHTML='<div class=&quot;photo-fallback&quot;>No se pudo cargar la imagen directa de Imgur.</div>'"
+            />
+            <div class="photo-caption">${escapeHtml(label)}</div>
+          </div>
+        `;
+      }
+
+      if(media === "file"){
+        content += `
+          <div class="file-card">
+            <div class="file-icon">📍</div>
+            <div class="file-text">
+              <strong>${escapeHtml(file)}</strong>
+              <small>${escapeHtml(meta)}</small>
+            </div>
+          </div>
+        `;
+      }
+
+      content += `${text ? escapeHtml(text) : ""}<span class="time">${nowTime()}${from === "me" ? '<span class="ticks">✓✓</span>' : ""}</span>`;
+      b.innerHTML = content;
+      chat.appendChild(b);
+      chat.scrollTop = chat.scrollHeight;
+      return b;
+    }
+
+    const steps = {
+      intro: {
+        messages: [
+          {text:"Paola... ¿estás ahí?"},
+          {text:"No puedo llamar. Tengo 6% de batería."},
+          {text:"Estoy en Bogotá, por La Candelaria. Creo que alguien me viene siguiendo."},
+          {text:"Entré por una calle empedrada cerca del Chorro de Quevedo y no sé si salir o esconderme."}
+        ],
+        choices: [
+          {text:"Respira. Dime exactamente qué ves alrededor.", delta:8, next:"where"},
+          {text:"Muévete hacia un lugar con gente, pero sin correr.", delta:2, next:"publicArea"},
+          {text:"¿Te vio? ¿Estás herida?", delta:4, next:"hurt"}
+        ]
+      },
+
+      hurt: {
+        messages: [
+          {from:"me", text:"¿Te vio? ¿Estás herida?"},
+          {text:"No sé si me vio. Me torcí un poco el tobillo bajando una calle empinada."},
+          {text:"Puedo caminar, pero si corro me duele."}
+        ],
+        choices: [
+          {text:"No corras. Ubícame con calma y dime puntos visibles.", delta:8, next:"where"},
+          {text:"Busca un sitio abierto con gente o seguridad.", delta:3, next:"publicArea"},
+          {text:"Si se acerca, escóndete en la primera entrada que veas.", delta:-8, next:"hideEntry"}
+        ]
+      },
+
+      where: {
+        messages: [
+          {from:"me", text:"Dime exactamente qué ves alrededor."},
+          {typing:true},
+          {media:"file", file:"ubicacion_angelica.live", meta:"GPS inestable • La Candelaria", text:"El GPS me marca cerca del Chorro de Quevedo, pero salta entre calles."},
+          {text:"Veo grafitis, una puerta metálica con un teclado y un letrero que apunta a una entrada de servicio."}
+        ],
+        evidence:["location"],
+        choices: [
+          {text:"Mándame foto del letrero o de la puerta.", delta:8, next:"photo"},
+          {text:"Acércate a la puerta, pero escucha primero.", delta:6, next:"listenNoCode"},
+          {text:"Aléjate hacia un lugar con gente, pero sin perder de vista la calle.", delta:1, next:"publicArea"}
+        ]
+      },
+
+      photo: {
+        messages: [
+          {from:"me", text:"Mándame foto del letrero o de la puerta."},
+          {typing:true},
+          {media:"photo", label:"Foto enviada: entrada de servicio cerca de La Candelaria. En el letrero se ve el número 7493.", text:"La foto salió medio oscura, pero el número se ve: 7493."},
+          {text:"La puerta tiene teclado. También hay una flecha que dice CONTROL."}
+        ],
+        evidence:["photo","code"],
+        choices: [
+          {text:"Ese 7493 puede ser clave. Escucha primero antes de entrar.", delta:8, next:"listenKnown"},
+          {text:"Pon 7493 y entra rápido.", delta:2, next:"inside"},
+          {text:"No entres todavía. Muévete hacia un sitio con más gente.", delta:1, next:"publicAreaKnown"}
+        ]
+      },
+
+      listenNoCode: {
+        messages: [
+          {from:"me", text:"Acércate a la puerta, pero escucha primero."},
+          {text:"Estoy cerca. Tiene teclado, pero desde aquí no veo bien los números."},
+          {text:"Escucho un radio. Alguien dijo: “Morales, revise la entrada de servicio”."},
+          {text:"La voz se alejó. Tengo unos segundos, pero no sé el código."}
+        ],
+        evidence:["name"],
+        choices: [
+          {text:"Mándame una foto clara del letrero o del teclado.", delta:8, next:"photo"},
+          {text:"Mira la puerta rápido y dime si ves algún número de 4 dígitos.", delta:7, next:"readCode"},
+          {text:"No arriesgues la puerta. Busca ayuda en la calle.", delta:1, next:"publicArea"}
+        ]
+      },
+
+      readCode: {
+        messages: [
+          {from:"me", text:"Mira si hay algún PIN o número cerca del teclado."},
+          {typing:true},
+          {text:"Sí. Hay un número escrito al lado del teclado."},
+          {text:"Es 7493. Está medio rayado, pero se lee."},
+          {text:"Creo que ese puede ser el acceso."}
+        ],
+        evidence:["code"],
+        choices: [
+          {text:"Usa 7493 y entra ahora.", delta:10, next:"inside"},
+          {text:"Antes de entrar, envíame foto para confirmar.", delta:6, next:"photo"},
+          {text:"No entres. Busca una ruta con gente cerca.", delta:1, next:"publicAreaKnown"}
+        ]
+      },
+
+      listenKnown: {
+        messages: [
+          {from:"me", text:"Escucha primero antes de entrar."},
+          {text:"Escucho un radio. Alguien dijo: “Morales, revise la entrada de servicio”."},
+          {text:"La voz se alejó. Creo que tengo unos segundos."}
+        ],
+        evidence:["name"],
+        choices: [
+          {text:"Entra ahora con 7493.", delta:10, next:"inside"},
+          {text:"No entres. Si hay radio, puede haber seguridad cerca. Busca ayuda.", delta:3, next:"securityRoute"},
+          {text:"Quédate escondida sin moverte.", delta:-14, next:"stalkerCloser"}
+        ]
+      },
+
+      inside: {
+        messages: [
+          {from:"me", text:"Entra por la puerta."},
+          {text:"Entré. Es un pasillo estrecho de mantenimiento."},
+          {text:"Hay tres opciones: escalera a CONTROL, puerta B2 y una salida hacia la Carrera Séptima."},
+          {text:"Escucho que alguien abrió la puerta metálica detrás de mí."}
+        ],
+        choices: [
+          {text:"Ve a CONTROL para buscar cámaras o intercom.", delta:8, next:"control"},
+          {text:"Ve primero a B2. Puede controlar la salida.", delta:10, next:"b2"},
+          {text:"Prueba la salida a la Carrera Séptima ya.", delta:-8, next:"locked"}
+        ]
+      },
+
+      control: {
+        messages: [
+          {from:"me", text:"Ve a CONTROL."},
+          {text:"Hay monitores. Veo la Plaza del Chorro, una calle hacia el Museo del Oro y una salida lateral."},
+          {text:"El mapa dice que la salida lateral depende del circuito B2."},
+          {text:"En una cámara veo a alguien entrando por el pasillo. Viene lento, pero viene."}
+        ],
+        evidence:["route"],
+        choices: [
+          {text:"Usa el intercom y di dónde estás con calma.", delta:8, next:"intercom"},
+          {text:"Ve a B2 para liberar la salida lateral.", delta:5, next:"b2"},
+          {text:"Apaga las luces para que no te vea.", delta:-8, next:"dark"}
+        ]
+      },
+
+      b2: {
+        messages: [
+          {from:"me", text:"Ve a B2."},
+          {text:"Estoy en B2. Hay breakers. Uno dice SALIDA CANDELARIA."},
+          {text:"Si lo bajo, parece que libera la puerta lateral por pocos segundos."}
+        ],
+        evidence:["route"],
+        choices: [
+          {text:"Baja SALIDA CANDELARIA y corre hacia la salida lateral.", delta:12, next:"gate"},
+          {text:"Baja todos los breakers para confundirlo.", delta:-18, next:"blackout"},
+          {text:"No toques nada. Vuelve a CONTROL y usa el intercom.", delta:1, next:"control"}
+        ]
+      },
+
+      intercom: {
+        messages: [
+          {from:"me", text:"Usa el intercom y di dónde estás con calma."},
+          {text:"Contestó alguien. Me pregunta nombre y ubicación."},
+          {text:"Escucho pasos en el pasillo. Necesito hablar claro."}
+        ],
+        choices: [
+          {text:"Di: Soy Angelica, estoy en La Candelaria, entrada de servicio, cerca del Chorro de Quevedo.", delta:12, next:"gate"},
+          {text:"Diles que alguien te sigue y que llamen a seguridad a la salida lateral.", delta:8, next:"securityExit"},
+          {text:"Grita que te ayuden sin explicar nada.", delta:-14, next:"confusion"}
+        ]
+      },
+
+      gate: {
+        messages: [
+          {text:"Estoy llegando a la salida lateral."},
+          {text:"Veo luces de una patrulla o seguridad privada afuera."},
+          {text:"También escucho pasos detrás de mí."}
+        ],
+        choices: [
+          {text:"Sal y grita: “Soy Angelica, estoy en La Candelaria, ayúdenme”.", delta:12, next:"savedService"},
+          {text:"No salgas todavía. Puede ser una trampa. Mira si hay uniforme.", delta:2, next:"checkUniform"},
+          {text:"Devuélvete hacia el pasillo.", delta:-20, next:"panicPath"}
+        ]
+      },
+
+      checkUniform: {
+        messages: [
+          {from:"me", text:"Mira si hay uniforme antes de salir."},
+          {text:"Sí. Veo un chaleco de seguridad y una linterna grande."},
+          {text:"El que me seguía está entrando al pasillo. Ya no tengo mucho tiempo."}
+        ],
+        choices: [
+          {text:"Sal ahora y pide ayuda a seguridad.", delta:10, next:"savedService"},
+          {text:"Corre hacia la Carrera Séptima.", delta:3, next:"streetChase"},
+          {text:"Escóndete otra vez.", delta:-12, next:"stalkerCloser"}
+        ]
+      },
+
+      publicArea: {
+        messages: [
+          {from:"me", text:"Muévete hacia un lugar con gente, pero sin correr."},
+          {text:"Estoy saliendo de la calle empedrada. Veo más luz hacia una esquina."},
+          {text:"La persona sigue detrás, pero mantiene distancia."},
+          {text:"Acabo de pasar frente a una entrada metálica con un teclado, pero no sé si abre o si necesita clave."},
+          {text:"A la izquierda veo un café abierto. Al frente veo una calle que baja hacia el Museo del Oro."}
+        ],
+        choices: [
+          {text:"Mira si hay algún PIN o número cerca del teclado.", delta:8, next:"readCode"},
+          {text:"Entra al café y pide ayuda al encargado.", delta:4, next:"cafe"},
+          {text:"Sigue caminando hacia el Museo del Oro buscando ayuda.", delta:-10, next:"museumRoute"}
+        ]
+      },
+
+      serviceEntranceCheck: {
+        messages: [
+          {from:"me", text:"Regresa a esa entrada metálica y dime qué pide."},
+          {text:"Estoy frente a la entrada."},
+          {text:"Sí, tiene un teclado pequeño y un letrero viejo al lado."},
+          {text:"No alcanzo a leerlo bien desde aquí. Hay poca luz y no quiero prender el flash mucho tiempo."}
+        ],
+        choices: [
+          {text:"Mándame una foto rápida del letrero.", delta:8, next:"photo"},
+          {text:"Acércate solo un poco y dime si ves un número de 4 dígitos.", delta:7, next:"readCode"},
+          {text:"Déjalo. Si hay riesgo, busca ayuda en el café.", delta:3, next:"cafe"}
+        ]
+      },
+
+      publicAreaKnown: {
+        messages: [
+          {from:"me", text:"Muévete hacia un sitio con más gente."},
+          {text:"Estoy saliendo de la calle empedrada. La persona sigue detrás."},
+          {text:"Ya tengo el número 7493, pero también veo un café abierto y una ruta hacia el Museo del Oro."}
+        ],
+        choices: [
+          {text:"Entra al café y pide ayuda al encargado.", delta:5, next:"cafe"},
+          {text:"Camina hacia el Museo del Oro buscando un policía.", delta:3, next:"museumRoute"},
+          {text:"Regresa a la puerta y usa el 7493.", delta:4, next:"inside"}
+        ]
+      },
+
+      cafe: {
+        messages: [
+          {from:"me", text:"Entra al café y pide ayuda al encargado."},
+          {text:"Entré. El encargado me miró raro, pero cerró la puerta cuando le dije que me seguían."},
+          {text:"La persona pasó frente al vidrio y se quedó mirando."},
+          {text:"El encargado dice que puede llamar a seguridad o dejarme salir por la cocina."}
+        ],
+        choices: [
+          {text:"Que llame a seguridad y quédate lejos de la ventana.", delta:10, next:"savedCafe"},
+          {text:"Sal por la cocina hacia otra calle.", delta:2, next:"kitchenExit"},
+          {text:"Sal del café para que no metan al encargado en problemas.", delta:-18, next:"streetChase"}
+        ]
+      },
+
+      kitchenExit: {
+        messages: [
+          {from:"me", text:"Sal por la cocina hacia otra calle."},
+          {text:"Salí por atrás. Hay un callejón estrecho y escucho pasos del otro lado."},
+          {text:"También veo una moto de policía estacionada cerca de la esquina."}
+        ],
+        choices: [
+          {text:"Ve directo a la moto y busca al oficial.", delta:10, next:"officer"},
+          {text:"Regresa al café y espera seguridad.", delta:4, next:"savedCafe"},
+          {text:"Corre por el callejón sin mirar.", delta:-20, next:"panicPath"}
+        ]
+      },
+
+      museumRoute: {
+        messages: [
+          {from:"me", text:"Camina hacia el Museo del Oro buscando un policía."},
+          {text:"Voy bajando. Hay más gente, pero él sigue detrás."},
+          {text:"Veo un oficial cerca de una esquina, pero está hablando con alguien."}
+        ],
+        choices: [
+          {text:"Acércate al oficial y dile tu nombre, ubicación y que te siguen.", delta:12, next:"officer"},
+          {text:"Sigue caminando como si nada para no llamar atención.", delta:-10, next:"streetChase"},
+          {text:"Métete en una tienda iluminada y pide que llamen a seguridad.", delta:5, next:"shopHelp"}
+        ]
+      },
+
+      officer: {
+        messages: [
+          {from:"me", text:"Acércate al oficial y dile lo que pasa."},
+          {text:"Lo hice. El oficial me puso detrás de él."},
+          {text:"La persona que me seguía cruzó la calle y se fue rápido."},
+          {text:"El oficial está pidiendo apoyo y me va a acompañar a un lugar seguro."}
+        ],
+        end:"officer"
+      },
+
+      shopHelp: {
+        messages: [
+          {from:"me", text:"Métete en una tienda iluminada y pide que llamen a seguridad."},
+          {text:"Entré a una tienda. Una señora cerró la puerta con seguro."},
+          {text:"La persona se quedó afuera unos segundos y luego caminó hacia otra calle."},
+          {text:"La señora ya llamó a seguridad del sector."}
+        ],
+        choices: [
+          {text:"Quédate ahí hasta que llegue seguridad.", delta:8, next:"savedCafe"},
+          {text:"Sal cuando parezca que se fue.", delta:-14, next:"streetChase"},
+          {text:"Pide que te acompañen hasta el oficial cercano.", delta:6, next:"officer"}
+        ]
+      },
+
+      securityRoute: {
+        messages: [
+          {from:"me", text:"Si hay radio, puede haber seguridad cerca. Busca ayuda."},
+          {text:"Me moví despacio hacia donde escuché el radio."},
+          {text:"Veo una persona con chaleco, pero también la sombra detrás de mí se acercó."}
+        ],
+        choices: [
+          {text:"Grita 'seguridad' y corre hacia el chaleco.", delta:10, next:"officer"},
+          {text:"No grites. Entra por la puerta con 7493.", delta:5, next:"inside"},
+          {text:"Escóndete entre los carros.", delta:-16, next:"stalkerCloser"}
+        ]
+      },
+
+      securityExit: {
+        messages: [
+          {from:"me", text:"Diles que alguien te sigue y que llamen a seguridad a la salida lateral."},
+          {text:"El intercom contestó: “manténgase en la salida lateral, vamos en camino”."},
+          {text:"Los pasos están más cerca, pero veo luces al otro lado."}
+        ],
+        choices: [
+          {text:"Sal hacia las luces y mantén el intercom abierto.", delta:12, next:"savedService"},
+          {text:"Espera escondida dentro del pasillo.", delta:-13, next:"stalkerCloser"},
+          {text:"Corre hacia B2 otra vez.", delta:-10, next:"blackout"}
+        ]
+      },
+
+      streetChase: {
+        messages: [
+          {text:"La persona aceleró el paso."},
+          {text:"No está corriendo, pero ya no disimula."},
+          {text:"Tengo dos opciones cerca: una tienda abierta y una esquina con más gente."}
+        ],
+        choices: [
+          {text:"Métete en la tienda y pide ayuda.", delta:8, next:"shopHelp"},
+          {text:"Ve a la esquina con más gente y busca un oficial.", delta:3, next:"museumRoute"},
+          {text:"Cruza la calle sin mirar para alejarte.", delta:-30, next:"fatalStreet"}
+        ]
+      },
+
+      hideEntry: {
+        messages: [
+          {from:"me", text:"Escóndete en la primera entrada que veas."},
+          {text:"Me metí en una entrada oscura. Creo que pasó cerca."},
+          {text:"Pero ahora estoy atrapada entre una puerta cerrada y la calle."}
+        ],
+        choices: [
+          {text:"Sal cuando pase y muévete hacia el café.", delta:2, next:"cafe"},
+          {text:"Busca si la puerta tiene teclado o letrero.", delta:3, next:"where"},
+          {text:"Quédate ahí callada.", delta:-18, next:"battery"}
+        ]
+      },
+
+      locked: {
+        messages: [
+          {from:"me", text:"Prueba la salida a la Carrera Séptima."},
+          {text:"Está cerrada. Dice “liberar desde B2”."},
+          {text:"Escucho pasos entrando al pasillo."}
+        ],
+        choices: [
+          {text:"Ve a B2 ya.", delta:8, next:"b2"},
+          {text:"Golpea la puerta fuerte para que alguien te escuche.", delta:-8, next:"noiseButHelp"},
+          {text:"Regresa a CONTROL.", delta:4, next:"control"}
+        ]
+      },
+
+      noiseButHelp: {
+        messages: [
+          {from:"me", text:"Golpea la puerta fuerte para que alguien te escuche."},
+          {text:"Hice ruido. Eso llamó la atención... de ambos lados."},
+          {text:"Escucho seguridad afuera, pero también pasos corriendo dentro."}
+        ],
+        choices: [
+          {text:"Grita tu nombre y ubicación a seguridad.", delta:4, next:"savedService"},
+          {text:"Corre a B2 para abrir la salida.", delta:1, next:"b2"},
+          {text:"Quédate pegada a la puerta sin moverte.", delta:-18, next:"caught"}
+        ]
+      },
+
+      dark: {
+        messages: [
+          {from:"me", text:"Apaga las luces para que no te vea."},
+          {text:"Apagué parte del pasillo, pero ahora yo tampoco veo bien."},
+          {text:"El sonido de pasos se siente más cerca."}
+        ],
+        choices: [
+          {text:"Ve a B2 y libera la salida.", delta:2, next:"b2"},
+          {text:"Usa el intercom ahora.", delta:1, next:"intercom"},
+          {text:"Camina a ciegas hacia el fondo.", delta:-22, next:"panicPath"}
+        ]
+      },
+
+      blackout: {
+        messages: [
+          {from:"me", text:"Baja todos los breakers."},
+          {text:"Bajé todo y ahora está oscuro completo."},
+          {text:"No veo nada... esto se puso peor."}
+        ],
+        choices: [
+          {text:"Busca solo el breaker de SALIDA CANDELARIA.", delta:1, next:"b2"},
+          {text:"Sube a CONTROL si puedes.", delta:1, next:"control"},
+          {text:"Camina a ciegas hacia la salida.", delta:-22, next:"panicPath"}
+        ]
+      },
+
+      confusion: {
+        messages: [
+          {from:"me", text:"Grita que te ayuden sin explicar nada."},
+          {text:"Grité, pero al otro lado no entendieron."},
+          {text:"Ahora escucho más movimiento en el pasillo."}
+        ],
+        choices: [
+          {text:"Usa el intercom otra vez, pero más claro.", delta:3, next:"intercom"},
+          {text:"Corre a B2 y usa la salida lateral.", delta:2, next:"b2"},
+          {text:"Quédate en CONTROL.", delta:-16, next:"stalkerCloser"}
+        ]
+      },
+
+      battery: {
+        messages: [
+          {text:"Mi batería está en 2%..."},
+          {text:"No puedo quedarme mucho más tiempo aquí."}
+        ],
+        choices: [
+          {text:"Busca gente o seguridad ya.", delta:2, next:"publicArea"},
+          {text:"Ve directo a B2 y termina esto.", delta:4, next:"b2"},
+          {text:"Esconde el celular y espera.", delta:-30, next:"lost"}
+        ]
+      },
+
+      stalkerCloser: {
+        messages: [
+          {text:"Me quedé quieta demasiado tiempo."},
+          {text:"Escucho pasos más cerca."},
+          {text:"Creo que ya sabe dónde estoy."}
+        ],
+        choices: [
+          {text:"Muévete ahora hacia un lugar con gente.", delta:1, next:"publicArea"},
+          {text:"Busca una salida inmediata: puerta, café o gente.", delta:1, next:"publicArea"},
+          {text:"Quédate escondida sin hacer nada.", delta:-35, next:"fatalSilence"}
+        ]
+      },
+
+      panicPath: {
+        messages: [
+          {text:"Corrí sin pensar."},
+          {text:"Escucho pasos detrás. Mi tobillo me duele más."},
+          {text:"Veo una esquina con gente y una tienda abierta."}
+        ],
+        choices: [
+          {text:"Métete a la tienda y pide ayuda.", delta:3, next:"shopHelp"},
+          {text:"Ve hacia la esquina con más gente.", delta:2, next:"museumRoute"},
+          {text:"Sigue corriendo sola.", delta:-30, next:"fatalStreet"}
+        ]
+      },
+
+      savedService: {
+        messages: [
+          {text:"¡Me vieron!"},
+          {text:"Era seguridad. Me abrieron la salida lateral."},
+          {text:"La persona que me seguía se fue cuando llegaron más guardias."},
+          {text:"Estoy a salvo, Paola. Me sacaron por la entrada de servicio."}
+        ],
+        end:"service"
+      },
+
+      savedCafe: {
+        messages: [
+          {text:"Me quedé dentro del local."},
+          {text:"El encargado llamó a seguridad y cerró la puerta."},
+          {text:"La persona se fue cuando vio que estaban llamando."},
+          {text:"Estoy a salvo, Paola. Me van a acompañar a un punto seguro."}
+        ],
+        end:"cafe"
+      },
+
+      fatalStreet: {
+        messages: [
+          {text:"Crucé sin mirar."},
+          {text:"Hubo un frenazo fuerte."},
+          {text:"Paola..."},
+          {text:"..."}
+        ],
+        end:"dead"
+      },
+
+      fatalSilence: {
+        messages: [
+          {text:"Me quedé quieta."},
+          {text:"Los pasos se detuvieron justo al frente."},
+          {text:"Paola... creo que me vio."},
+          {text:"..."}
+        ],
+        end:"dead"
+      },
+
+      caught: {
+        messages: [
+          {text:"Me escucharon."},
+          {text:"Alguien viene hacia mí."},
+          {text:"La puerta se está cerrando..."},
+          {text:"Paola..."}
+        ],
+        end:"dead"
+      },
+
+      lost: {
+        messages: [
+          {text:"La pantalla se está apagando..."},
+          {text:"Si no respondo, sigue intentando..."},
+          {text:"..."}
+        ],
+        end:"dead"
+      }
+    };
+
+    function runStep(id){
+      if(state.ended) return;
+      stopChoiceTimer();
+
+      const step = steps[id];
+      if(!step) return;
+
+      state.path.push(id);
+      choices.innerHTML = "";
+      fakeInput.textContent = "Angelica está escribiendo...";
+      contactStatus.textContent = "escribiendo...";
+
+      let delay = 250;
+
+      step.messages.forEach(msg => {
+        /*
+          Evita que la respuesta de Paola salga doble.
+          La opción seleccionada ya se imprime en choose().
+          Por eso, cuando venimos de una decisión, no volvemos a imprimir
+          mensajes from:"me" del siguiente bloque, aunque estén escritos distinto.
+        */
+        const shouldSkipUserMessage = msg.from === "me" && lastUserText;
+
+        if(!shouldSkipUserMessage){
+          later(() => {
+            if(msg.typing){
+              const typingBubble = addBubble({typing:true});
+              later(() => typingBubble.remove(), 650);
+            } else {
+              addBubble(msg);
+            }
+          }, delay);
+
+          const len = (msg.text || msg.label || msg.file || "").length;
+          delay += msg.typing ? 800 : Math.min(1200, 550 + len * 14);
+        }
+      });
+
+      later(() => {
+        if(step.evidence){
+          step.evidence.forEach(e => state.evidence.add(e));
+          updateEvidence();
+        }
+
+        if(step.end){
+          endGame(step.end);
+        } else {
+          contactStatus.textContent = "en línea";
+          renderChoices(step.choices || []);
+        }
+      }, delay + 150);
+    }
+
+    function renderChoices(items){
+      currentChoices = items;
+      fakeInput.textContent = "Elige una respuesta...";
+      choices.innerHTML = items.map((c, i) => `
+        <button class="choice" onclick="choose(${i})">${escapeHtml(c.text)}</button>
+      `).join("");
+
+      if(items.length > 0){
+        startChoiceTimer();
+      }
+    }
+
+    function choose(index){
+      if(state.ended) return;
+
+      const c = currentChoices[index];
+      if(!c) return;
+
+      stopChoiceTimer();
+      choices.innerHTML = "";
+      lastUserText = c.text;
+      addBubble({from:"me", text:c.text});
+      fakeInput.textContent = c.text;
+
+      state.rescue = Math.max(0, Math.min(100, state.rescue + (c.delta || 0)));
+      updateRescue();
+
+      if(c.delta > 0){
+        showToast(`Rescate +${c.delta}`);
+      } else if(c.delta < 0){
+        showToast(`Rescate ${c.delta}`);
+      }
+
+      if(state.rescue <= 0){
+        endGame("dead");
+        return;
+      }
+
+      later(() => runStep(c.next), 260);
+    }
+
+    function endGame(type){
+      if(state.ended) return;
+
+      state.ended = true;
+      clearAllTimers();
+      stopChoiceTimer();
+      choices.innerHTML = "";
+      fakeInput.textContent = "Conversación finalizada";
+
+      let title = "";
+      let text = "";
+      let icon = "";
+
+      if(type === "service"){
+        title = "Final 1: Entrada de servicio";
+        text = "Paola logró guiar a Angelica por la entrada de servicio. Usaron el código, el intercom y la salida lateral para ponerla a salvo.";
+        icon = "🚪";
+        contactStatus.textContent = "a salvo";
+        state.rescue = Math.max(state.rescue, 92);
+        updateRescue();
+      } else if(type === "officer"){
+        title = "Final 2: Ayuda oficial";
+        text = "Angelica llegó hasta un oficial cerca del centro. La persona que la seguía se alejó y el oficial pidió apoyo.";
+        icon = "👮";
+        contactStatus.textContent = "a salvo";
+        state.rescue = Math.max(state.rescue, 88);
+        updateRescue();
+      } else if(type === "cafe"){
+        title = "Final 3: Refugio seguro";
+        text = "Angelica se refugió en un local. El encargado cerró la puerta, pidió ayuda y la acompañaron a un punto seguro.";
+        icon = "☕";
+        contactStatus.textContent = "a salvo";
+        state.rescue = Math.max(state.rescue, 84);
+        updateRescue();
+      } else if(type === "dead"){
+        title = "Tu amiga ha muerto";
+        text = "Las decisiones tomadas dejaron a Angelica sin una salida segura. El rescate cayó a cero.";
+        icon = "💀";
+        contactStatus.textContent = "sin respuesta";
+        state.rescue = 0;
+        updateRescue();
+      }
+
+      later(() => {
+        overlay.classList.remove("hidden");
+        overlay.innerHTML = `
+          <div class="end-card">
+            <div class="start-icon">${icon}</div>
+            <h2>${title}</h2>
+            <p>
+              ${text}
+              <br><br>
+              <strong style="color:#8ff0bf;">Rescate final: ${Math.max(0, Math.min(100, state.rescue))}%</strong>
+              <br>
+              <strong style="color:#8ff0bf;">Pistas encontradas: ${state.evidence.size}/5</strong>
+            </p>
+            ${type !== "dead" ? '<div class="unlock-badge">🔓 Has desbloqueado el siguiente nivel</div>' : ''}
+            ${type !== "dead" ? '<button class="btn" onclick="showNextLevel()">Ir al Nivel 2</button>' : ''}
+            <button class="btn secondary" onclick="startGame()">Jugar otra vez</button>
+            <button class="btn secondary" onclick="resetToMenu()">Menú principal</button>
+          </div>
+        `;
+      }, 4000);
+    }
+
+    function showHowTo(){
+      overlay.innerHTML = `
+        <div class="start-card">
+          <div class="start-icon">🔎</div>
+          <h2>Cómo se juega</h2>
+          <p>
+            Lee el chat y escoge la respuesta que creas más segura.
+            La barra de rescate sube o baja según tus decisiones.
+            Encuentra pistas, ubica a Angelica y ayúdala a llegar a un lugar seguro.
+          </p>
+          <button class="btn" onclick="startGame()">ABRIR CHAT</button>
+          <button class="btn secondary" onclick="resetOverlay()">Volver</button>
+        </div>
+      `;
+    }
+
+
+
+    function showNextLevel(){
+      overlay.classList.add("hidden");
+      chat.style.display = "none";
+      document.querySelector(".topbar").style.display = "none";
+      document.querySelector(".evidence").style.display = "none";
+      choices.style.display = "none";
+      document.querySelector(".inputbar").style.display = "none";
+
+      const levelTwo = document.getElementById("levelTwoScreen");
+      levelTwo.classList.remove("hidden");
+      renderPuzzleLevel();
+    }
+
+    let numberSolved = false;
+    let colorsSolved = false;
+    let wordSolved = false;
+    let selectedColors = [];
+
+    const correctNumber = "427";
+    const correctColors = ["Amarillo", "Rojo", "Azul", "Verde"];
+    const correctWord = "PUNTA CANA";
+
+    function renderPuzzleLevel(){
+      numberSolved = false;
+      colorsSolved = false;
+      wordSolved = false;
+      selectedColors = [];
+
+      const levelTwo = document.getElementById("levelTwoScreen");
+      levelTwo.innerHTML = `
+        <div class="puzzle-game" id="puzzleGameScreen">
+          <h1>La Caja de los 3 Candados</h1>
+          <p class="puzzle-intro">
+            Encontraste una caja antigua. Para abrirla necesitas resolver tres candados:
+            número, colores y palabra secreta.
+          </p>
+
+          <div class="puzzle-box">
+            <div>La caja está cerrada...</div>
+            <div class="puzzle-status" id="puzzleBoxStatus">0 / 3 candados abiertos</div>
+          </div>
+
+          <div class="puzzle-locks">
+            <div class="puzzle-lock-card">
+              <div class="puzzle-lock-title">
+                🔢 Candado Numérico
+                <span id="puzzleNumStatus"></span>
+              </div>
+              <input class="puzzle-input" id="puzzleNumberInput" type="number" placeholder="Código de 3 dígitos">
+              <button class="puzzle-btn" onclick="checkPuzzleNumber()">Probar número</button>
+            </div>
+
+            <div class="puzzle-lock-card">
+              <div class="puzzle-lock-title">
+                🎨 Candado de Colores
+                <span id="puzzleColorStatus"></span>
+              </div>
+
+              <div class="puzzle-sequence" id="puzzleColorSequence">
+                Secuencia: —
+              </div>
+
+              <div class="puzzle-color-buttons">
+                <button class="puzzle-color-btn puzzle-red" onclick="addPuzzleColor('Rojo')" aria-label="Rojo"></button>
+                <button class="puzzle-color-btn puzzle-blue" onclick="addPuzzleColor('Azul')" aria-label="Azul"></button>
+                <button class="puzzle-color-btn puzzle-green" onclick="addPuzzleColor('Verde')" aria-label="Verde"></button>
+                <button class="puzzle-color-btn puzzle-yellow" onclick="addPuzzleColor('Amarillo')" aria-label="Amarillo"></button>
+              </div>
+
+              <button class="puzzle-btn" onclick="checkPuzzleColors()">Probar colores</button>
+              <button class="puzzle-btn secondary" onclick="resetPuzzleColors()">Borrar secuencia</button>
+            </div>
+
+            <div class="puzzle-lock-card">
+              <div class="puzzle-lock-title">
+                🔤 Candado de Palabra
+                <span id="puzzleWordStatus"></span>
+              </div>
+              <input class="puzzle-input" id="puzzleWordInput" type="text" placeholder="Lugar secreto">
+              <button class="puzzle-btn" onclick="checkPuzzleWord()">Probar palabra</button>
+            </div>
+          </div>
+
+          <div class="puzzle-clues-title">Pistas</div>
+          <div class="puzzle-clues">
+            <div class="puzzle-clue" onclick="togglePuzzleClue('puzzleClue1')">
+              📜 Nota doblada
+              <div class="puzzle-hidden-text" id="puzzleClue1">
+                1,240 - 583 + 312 - 115<br><br>
+                Debe ser solo la mitad.
+              </div>
+            </div>
+
+            <div class="puzzle-clue" onclick="togglePuzzleClue('puzzleClue2')">
+              🖼️ Pintura vieja
+              <div class="puzzle-hidden-text" id="puzzleClue2">
+                “El sol cae sobre la sangre, el cielo y la hierba.”
+              </div>
+            </div>
+
+            <div class="puzzle-clue" onclick="togglePuzzleClue('puzzleClue3')">
+              🗝️ Llave oxidada
+              <div class="puzzle-hidden-text" id="puzzleClue3">
+                “Pisé tu arena, vi tus estrellas, me diste algo lindo y por eso te visitaré de nuevo...”
+              </div>
+            </div>
+          </div>
+
+          <div class="puzzle-message" id="puzzleMessage"></div>
+        </div>
+      `;
+
+      updatePuzzleStatus();
+    }
+
+    function togglePuzzleClue(id){
+      const clue = document.getElementById(id);
+      clue.style.display = clue.style.display === "block" ? "none" : "block";
+    }
+
+    function showPuzzleMessage(text, type){
+      const msg = document.getElementById("puzzleMessage");
+      msg.textContent = text;
+      msg.className = "puzzle-message " + type;
+    }
+
+    function updatePuzzleStatus(){
+      let total = 0;
+      if(numberSolved) total++;
+      if(colorsSolved) total++;
+      if(wordSolved) total++;
+
+      document.getElementById("puzzleBoxStatus").textContent = total + " / 3 candados abiertos";
+      document.getElementById("puzzleNumStatus").innerHTML = numberSolved ? "<span class='puzzle-solved'>Abierto ✅</span>" : "";
+      document.getElementById("puzzleColorStatus").innerHTML = colorsSolved ? "<span class='puzzle-solved'>Abierto ✅</span>" : "";
+      document.getElementById("puzzleWordStatus").innerHTML = wordSolved ? "<span class='puzzle-solved'>Abierto ✅</span>" : "";
+
+      if(total === 3){
+        showPuzzleMessage("Todos los candados están abiertos...", "puzzle-success");
+        setTimeout(showSecretMessage, 1200);
+      }
+    }
+
+    function checkPuzzleNumber(){
+      const value = document.getElementById("puzzleNumberInput").value.trim();
+
+      if(numberSolved){
+        showPuzzleMessage("Ese candado ya está abierto.", "puzzle-success");
+        return;
+      }
+
+      if(value === correctNumber){
+        numberSolved = true;
+        showPuzzleMessage("Candado numérico abierto.", "puzzle-success");
+      } else {
+        showPuzzleMessage("Ese número no funciona. Busca una pista.", "puzzle-error");
+      }
+
+      updatePuzzleStatus();
+    }
+
+    function addPuzzleColor(color){
+      if(colorsSolved){
+        showPuzzleMessage("Ese candado ya está abierto.", "puzzle-success");
+        return;
+      }
+
+      if(selectedColors.length < 4){
+        selectedColors.push(color);
+      }
+
+      document.getElementById("puzzleColorSequence").textContent =
+        "Secuencia: " + selectedColors.join(" → ");
+    }
+
+    function resetPuzzleColors(){
+      selectedColors = [];
+      document.getElementById("puzzleColorSequence").textContent = "Secuencia: —";
+      showPuzzleMessage("Secuencia borrada.", "");
+    }
+
+    function checkPuzzleColors(){
+      if(colorsSolved){
+        showPuzzleMessage("Ese candado ya está abierto.", "puzzle-success");
+        return;
+      }
+
+      if(selectedColors.length !== 4){
+        showPuzzleMessage("La secuencia debe tener 4 colores.", "puzzle-error");
+        return;
+      }
+
+      const isCorrect = selectedColors.every((color, index) => color === correctColors[index]);
+
+      if(isCorrect){
+        colorsSolved = true;
+        showPuzzleMessage("Candado de colores abierto.", "puzzle-success");
+      } else {
+        showPuzzleMessage("La secuencia de colores está mal.", "puzzle-error");
+        resetPuzzleColors();
+      }
+
+      updatePuzzleStatus();
+    }
+
+    function checkPuzzleWord(){
+      const value = document.getElementById("puzzleWordInput").value.trim().replace(/\s+/g, " ").toUpperCase();
+
+      if(wordSolved){
+        showPuzzleMessage("Ese candado ya está abierto.", "puzzle-success");
+        return;
+      }
+
+      if(value === correctWord){
+        wordSolved = true;
+        showPuzzleMessage("Candado de palabra abierto.", "puzzle-success");
+      } else {
+        showPuzzleMessage("Esa palabra no es la correcta.", "puzzle-error");
+      }
+
+      updatePuzzleStatus();
+    }
+
+    function showSecretMessage(){
+      const levelTwo = document.getElementById("levelTwoScreen");
+      levelTwo.innerHTML = `
+        <div class="secret-card">
+          <h2>💌 Mensaje secreto desbloqueado</h2>
+          <p>La caja se abrió y reveló un mensaje guardado especialmente para ti.</p>
+
+          <div class="secret-message">
+            Mi amor gracias por hacerme tan feliz, estoy agradecido con aquellos que te trajeron al mundo porque ahora tú me haces feliz. Te ama, Fran.
+          </div>
+
+          <button class="puzzle-btn" onclick="renderPuzzleLevel()">Jugar otra vez</button>
+          <button class="puzzle-btn secondary" onclick="resetToMenu()">Volver al inicio</button>
+        </div>
+      `;
+    }
+
+    function resetOverlay(){
+      overlay.innerHTML = `
+        <div class="start-card">
+          <div class="start-icon">💬</div>
+          <h2>Última Señal</h2>
+          <p>
+            Angelica te escribe con poca batería. Está en Bogotá, cerca del centro histórico,
+            y cree que alguien la sigue. Tus decisiones pueden salvarla... o condenarla.
+          </p>
+          <button class="btn" onclick="startGame()">ABRIR CHAT</button>
+          <button class="btn secondary" onclick="showHowTo()">Cómo se juega</button>
+        </div>
+      `;
+    }
+
+    function resetToMenu(){
+      const levelTwo = document.getElementById("levelTwoScreen");
+      if(levelTwo){
+        levelTwo.classList.add("hidden");
+        levelTwo.innerHTML = "";
+      }
+
+      chat.style.display = "";
+      document.querySelector(".topbar").style.display = "";
+      document.querySelector(".evidence").style.display = "";
+      choices.style.display = "";
+      const inputbar = document.querySelector(".inputbar");
+      if(inputbar) inputbar.style.display = "";
+
+      clearAllTimers();
+      state.rescue = 50;
+      state.evidence = new Set();
+      state.ended = false;
+      state.path = [];
+      lastUserText = "";
+
+      chat.innerHTML = "";
+      choices.innerHTML = "";
+      fakeInput.textContent = "Elige una respuesta...";
+      contactStatus.textContent = "última vez hoy a las 11:58 PM";
+
+      updateRescue();
+      updateEvidence();
+
+      overlay.classList.remove("hidden");
+      resetOverlay();
+    }
+
+    function startGame(){
+      const levelTwo = document.getElementById("levelTwoScreen");
+      if(levelTwo){
+        levelTwo.classList.add("hidden");
+        levelTwo.innerHTML = "";
+      }
+
+      chat.style.display = "";
+      document.querySelector(".topbar").style.display = "";
+      document.querySelector(".evidence").style.display = "";
+      choices.style.display = "";
+      const inputbar = document.querySelector(".inputbar");
+      if(inputbar) inputbar.style.display = "";
+
+      clearAllTimers();
+
+      state.rescue = 50;
+      state.evidence = new Set();
+      state.ended = false;
+      state.path = [];
+      lastUserText = "";
+
+      chat.innerHTML = `<div class="date-chip">Hoy</div>`;
+      choices.innerHTML = "";
+      fakeInput.textContent = "Elige una respuesta...";
+      contactStatus.textContent = "en línea";
+
+      updateRescue();
+      updateEvidence();
+
+      overlay.classList.add("hidden");
+      runStep("intro");
+    }
+
+    updateRescue();
+    updateEvidence();
+  </script>
+</body>
+</html>
