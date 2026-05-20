@@ -903,7 +903,7 @@
     let timers = [];
     let currentChoices = [];
     let choiceCountdown = null;
-    let timeLeft = 15;
+    let timeLeft = 20;
     let lastUserText = "";
 
     const state = {
@@ -935,7 +935,7 @@
     function startChoiceTimer(){
       stopChoiceTimer();
 
-      timeLeft = 15;
+      timeLeft = 20;
       choiceTimer.classList.add("show");
       timerCount.textContent = "20s";
       timerFill.style.width = "100%";
