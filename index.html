@@ -929,7 +929,7 @@
       toast.textContent = msg;
       toast.classList.add("show");
       clearTimeout(showToast.t);
-      showToast.t = setTimeout(() => toast.classList.remove("show"), 1200);
+      showToast.t = setTimeout(() => toast.classList.remove("show"), 2000);
     }
 
     function startChoiceTimer(){
@@ -937,13 +937,13 @@
 
       timeLeft = 15;
       choiceTimer.classList.add("show");
-      timerCount.textContent = "15s";
+      timerCount.textContent = "20s";
       timerFill.style.width = "100%";
 
       choiceCountdown = setInterval(() => {
         timeLeft -= 1;
         timerCount.textContent = timeLeft + "s";
-        timerFill.style.width = Math.max(0, (timeLeft / 15) * 100) + "%";
+        timerFill.style.width = Math.max(0, (timeLeft / 20) * 100) + "%";
 
         if(timeLeft <= 0){
           stopChoiceTimer();
