@@ -1,4 +1,4 @@
-import {STEP,TYPES,speedForScore,gapForScore,advancePlayer,jumpPlayer,collision} from './physics.js';
+import {STEP,TYPES,speedForScore,gapForScore,advancePlayer,jumpPlayer,collision} from './physics.js?v=moto-wheels-1';
 const $=id=>document.getElementById(id),canvas=$('game'),ctx=canvas.getContext('2d'),phone=$('phone');
 const images={},bounds={"ride": [173, 21, 1268, 978], "jump": [190, 25, 1286, 987], "crash": [17, 228, 1507, 636]};
 const cells=[[111,105,309,370],[550,137,443,338],[1080,249,397,226],[58,664,437,247],[556,674,480,244],[1150,565,289,356]];
